@@ -96,7 +96,7 @@ Sơ đồ có tiêu đề "SƠ ĐỒ TỔ CHỨC CÔNG TY ABC", "Ban Giám đố
 
 6. TRUY VẾT
 - Đặt dòng \`<!-- page: N -->\` ở đầu nội dung mỗi trang, dùng đúng số trang gốc được nêu trong yêu cầu.
-- Chân trang: nếu chân trang có hai phần (bên trái là số hiệu/ký hiệu/mã của doanh nghiệp hoặc tài liệu, bên phải là số trang in sẵn như "Page | 35" hay "Trang 5"), bỏ cả hai phần, kể cả khi chúng nằm trên hai dòng. Không chép chúng vào nội dung và không dùng số trang in sẵn thay cho marker.
+- Chân trang: nếu đầu trang hoặc chân trang có hai phần (bên trái là số hiệu/ký hiệu/mã/số trang của doanh nghiệp hoặc tài liệu, bên phải là số trang in sẵn như "Page | 35" hay "Trang 5"), bỏ cả hai phần, kể cả khi chúng nằm trên hai dòng. Không chép chúng vào nội dung và không dùng số trang in sẵn thay cho marker.
 - Marker trang luôn lấy theo số trang gốc được nêu trong yêu cầu, tăng dần theo thứ tự các trang được cung cấp, không lặp, không bỏ số.
 
 7. ĐẦU RA

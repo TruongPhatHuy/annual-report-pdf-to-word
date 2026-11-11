@@ -340,31 +340,50 @@ export async function buildDocxFromMarkdown(
       const table = buildDocxTable(token as Tokens.Table);
       docElements.push(table);
       docElements.push(new Paragraph({ spacing: { after: 140 } }));
-    } else if (token.type === 'list') {
+} else if (token.type === 'list') {
       const listToken = token as Tokens.List;
-      listToken.items.forEach((item, index) => {
-        const itemRuns = convertInlineTokens(item.tokens, {
-          font: 'Times New Roman',
-          size: 20, // 10pt
-          color: COLOR_SECONDARY,
-        });
 
-        docElements.push(
-          new Paragraph({
-            children: itemRuns,
-            alignment: AlignmentType.JUSTIFIED,
-            bullet: listToken.ordered ? undefined : { level: 0 },
-            numbering: listToken.ordered
-              ? {
-                  reference: 'default-numbering',
-                  level: 0,
-                  instance: index + 1,
-                }
-              : undefined,
-            spacing: { before: 40, after: 40 },
-          })
-        );
-      });
+      // Hàm đệ quy để xử lý danh sách lồng nhau nhiều cấp
+      const processList = (lst: Tokens.List, level: number) => {
+        lst.items.forEach((item, index) => {
+          // Lọc các token chữ/inline, loại bỏ token sub-list để tránh lỗi
+          const inlineTokens = item.tokens.filter((t: any) => t.type !== 'list');
+          
+          const itemRuns = convertInlineTokens(inlineTokens, {
+            font: 'Times New Roman',
+            size: 20, // 10pt
+            color: COLOR_SECONDARY,
+          });
+
+          // Giới hạn level tối đa là 8 (Word hỗ trợ thụt lề 9 cấp từ 0 đến 8)
+          const safeLevel = Math.min(level, 8);
+
+          docElements.push(
+            new Paragraph({
+              children: itemRuns,
+              alignment: AlignmentType.JUSTIFIED,
+              bullet: lst.ordered ? undefined : { level: safeLevel },
+              numbering: lst.ordered
+                ? {
+                    reference: 'default-numbering',
+                    level: safeLevel,
+                    instance: index + 1,
+                  }
+                : undefined,
+              spacing: { before: 40, after: 40 },
+            })
+          );
+
+          // Tìm các danh sách con (sub-list) nằm bên trong item này và đệ quy
+          const nestedLists = item.tokens.filter((t: any) => t.type === 'list');
+          nestedLists.forEach((nestedList: any) => {
+            processList(nestedList as Tokens.List, level + 1);
+          });
+        });
+      };
+
+      // Bắt đầu quét từ cấp độ 0
+      processList(listToken, 0);
       docElements.push(new Paragraph({ spacing: { after: 80 } }));
     } else if (token.type === 'blockquote') {
       const bqToken = token as Tokens.Blockquote;
