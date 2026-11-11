@@ -175,7 +175,7 @@ export const UploadSettings: React.FC<UploadSettingsProps> = ({
             <Sparkles className="w-3.5 h-3.5" />
             Tối ưu hóa đặc biệt cho Báo cáo thường niên (100–300+ trang)
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+          <h2 className="text-[23px] font-bold text-white tracking-tight">
             Chuyển đổi PDF Báo Cáo Thường Niên sang Word (.docx) Chuẩn Cấu Trúc
           </h2>
           <p className="mt-2 text-sm text-slate-300 leading-relaxed">
