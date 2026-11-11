@@ -1,15 +1,14 @@
-[readme.md](https://github.com/user-attachments/files/34691383/readme.md)
 # Annual Report PDF to Word (Client-Side AI)
 
 An AI-powered web application that converts complex Annual Report PDFs into structured Markdown and native Microsoft Word (.docx) documents, running **entirely in your browser**.
 
-![Demo Banner](docs/images/banner.png)
+<img width="916" height="477" alt="Screenshot 2026-11-11 213254" src="https://github.com/user-attachments/assets/e4763178-cc41-49fe-bf50-9d1f8756d1a6" />
 
 ## Overview
 
 Annual reports are notoriously difficult to process automatically due to multi-column layouts, nested financial tables, and complex hierarchies. Traditional PDF extractors often produce broken text blobs.
 
-This project leverages the **Google Gemini 1.5 Pro/Flash API** to deeply understand document semantics. It reconstructs layouts, stitches broken tables across pages, and generates clean, editable Markdown and DOCX files. 
+This project leverages the **Google Gemini API** (Gemini 3.1 Flash Lite, 3.8 Flash, and Pro) to deeply understand document semantics. It reconstructs layouts, stitches broken tables across pages, and generates clean, editable Markdown and DOCX files.
 
 **Privacy First:** Unlike traditional SaaS tools, this app processes everything client-side. Your sensitive financial PDFs are sent directly from your browser to Google's API, with no intermediary backend server storing your data.
 
@@ -18,10 +17,15 @@ This project leverages the **Google Gemini 1.5 Pro/Flash API** to deeply underst
 ## Features
 
 ✅ **100% Client-Side Processing:** No backend required. Highly secure and cost-effective.
+
 ✅ **Smart Chunking:** Bypasses API context limits by intelligently splitting PDFs and merging results.
+
 ✅ **Rate-Limit Handling:** Built-in queue, auto-retry, and exponential backoff for stable API calls.
+
 ✅ **Advanced Table Reconstruction:** Accurately converts complex PDF tables into Markdown/Word tables.
+
 ✅ **Native Word Export:** Generates real `.docx` files (Times New Roman, Justified, 10pt) using `docx.js`.
+
 ✅ **Interactive Review Workspace:** Compare original PDF pages side-by-side with generated Markdown before exporting.
 
 ---
