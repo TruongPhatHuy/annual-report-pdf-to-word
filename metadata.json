@@ -1,0 +1,6 @@
+{
+  "name": "Annual Report PDF → Word Converter",
+  "description": "Chuyển đổi báo cáo thường niên PDF dung lượng lớn sang tài liệu Word (.docx) có cấu trúc chuẩn, giữ nguyên bảng biểu và dữ liệu biểu đồ, tối ưu cho con người và AI/RAG pipelines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
