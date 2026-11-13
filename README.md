@@ -2,6 +2,8 @@
 
 An AI-powered web application that converts complex Annual Report PDFs into structured Markdown and native Microsoft Word (.docx) documents, running **entirely in your browser**.
 
+🚀 **Live Demo:** [Try the application here!](https://annual-report-pdf-word-converter.ai.studio/)
+
 <img width="918" height="476" alt="Screenshot 2026-11-11 225932" src="https://github.com/user-attachments/assets/19e9cdc9-83f2-4bd4-91cf-7069d997efc8" />
 
 ## Overview
