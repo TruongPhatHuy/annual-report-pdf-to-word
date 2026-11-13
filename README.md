@@ -106,6 +106,8 @@ Open `http://localhost:5173` in your browser.
 
 ## Usage
 
+You can use the **[Live Web Version](https://annual-report-pdf-word-converter.ai.studio/)** directly without any installation, or run it locally using the steps above.
+
 1. **Enter API Key:** Provide your Google AI Studio API Key in the settings modal (stored only in browser memory).
 2. **Upload PDF:** Drag and drop an Annual Report PDF (supports 100-300+ pages).
 3. **Configure Pipeline:** Adjust concurrency, chunk size, and select your preferred Gemini model (e.g., Flash Lite or Pro).
