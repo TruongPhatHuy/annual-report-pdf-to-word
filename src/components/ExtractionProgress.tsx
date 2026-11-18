@@ -1,22 +1,8 @@
 import React from 'react';
 import {
-  Clock,
-  Coins,
-  Cpu,
-  CheckCircle,
-  AlertTriangle,
-  Loader2,
-  RefreshCw,
-  XCircle,
-  Layers,
-  Sparkles,
-  Play,
-  Download,
-  FileText,
-  Hourglass,
-  PauseCircle,
-  CalendarClock,
-  Eye,
+  Clock, Coins, Cpu, CheckCircle, AlertTriangle, Loader2, RefreshCw,
+  XCircle, Layers, Play, Download, FileText, Hourglass, PauseCircle,
+  CalendarClock, Eye,
 } from 'lucide-react';
 import { PdfChunk } from '../types';
 
@@ -39,21 +25,10 @@ interface ExtractionProgressProps {
 }
 
 export const ExtractionProgress: React.FC<ExtractionProgressProps> = ({
-  chunks,
-  isProcessing,
-  elapsedSeconds,
-  onCancel,
-  onResume,
-  onRetryFailed,
-  onDownloadPartialDocx,
-  onDownloadPartialMd,
-  onViewPartialReview,
-  model,
-  dailyQuotaBanner,
-  queuePausedCountdown,
-  queuePausedReason,
-  requestsUsedToday,
-  dailyQuotaLimit,
+  chunks, isProcessing, elapsedSeconds, onCancel, onResume, onRetryFailed,
+  onDownloadPartialDocx, onDownloadPartialMd, onViewPartialReview,
+  model, dailyQuotaBanner, queuePausedCountdown, queuePausedReason,
+  requestsUsedToday, dailyQuotaLimit,
 }) => {
   const totalChunks = chunks.length;
   const doneChunks = chunks.filter((c) => c.status === 'done').length;
@@ -61,330 +36,197 @@ export const ExtractionProgress: React.FC<ExtractionProgressProps> = ({
   const runningChunks = chunks.filter((c) => c.status === 'running').length;
   const waitingRateLimitChunks = chunks.filter((c) => c.status === 'waiting-for-rate-limit').length;
   const pausedChunks = chunks.filter((c) => c.status === 'paused').length;
-
   const percentage = totalChunks > 0 ? Math.round((doneChunks / totalChunks) * 100) : 0;
   const hasRemainingChunks = chunks.some((c) => c.status !== 'done');
 
-  // Aggregate tokens
-  let totalInputTokens = 0;
-  let totalOutputTokens = 0;
+  let totalInputTokens = 0, totalOutputTokens = 0;
   chunks.forEach((c) => {
-    if (c.tokens) {
-      totalInputTokens += c.tokens.promptTokens || 0;
-      totalOutputTokens += c.tokens.candidatesTokens || 0;
-    }
+    if (c.tokens) { totalInputTokens += c.tokens.promptTokens || 0; totalOutputTokens += c.tokens.candidatesTokens || 0; }
   });
-  const totalTokens = totalInputTokens + totalOutputTokens;
-
-  // Rough cost estimate
   const isPro = model.includes('pro') || model.includes('argon');
-  const inputRate = isPro ? 1.25 / 1_000_000 : 0.15 / 1_000_000;
-  const outputRate = isPro ? 5.0 / 1_000_000 : 0.6 / 1_000_000;
-  const estimatedCost = totalInputTokens * inputRate + totalOutputTokens * outputRate;
+  const estimatedCost = totalInputTokens * (isPro ? 1.25 : 0.15) / 1_000_000 + totalOutputTokens * (isPro ? 5.0 : 0.6) / 1_000_000;
 
   const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const s = secs % 60;
+    const mins = Math.floor(secs / 60), s = secs % 60;
     return `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  const statusColor = (status: PdfChunk['status']) => {
+    switch (status) {
+      case 'done': return 'border-zinc-700 bg-zinc-900/80 text-zinc-300';
+      case 'running': return 'border-blue-700/60 bg-blue-950/30 text-blue-200';
+      case 'waiting-for-rate-limit': return 'border-amber-700/40 bg-amber-950/20 text-amber-200';
+      case 'paused': return 'border-zinc-700 bg-zinc-900 text-zinc-400';
+      case 'failed': return 'border-red-800/50 bg-red-950/20 text-red-300';
+      case 'split': return 'border-indigo-700/40 bg-indigo-950/20 text-indigo-300';
+      default: return 'border-zinc-800 bg-zinc-900/50 text-zinc-500';
+    }
+  };
+
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
-      {/* Daily Quota Exhausted Banner */}
+    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5">
+      {/* Daily Quota Banner */}
       {dailyQuotaBanner && (
-        <div className="p-4 rounded-xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-200 flex items-start gap-3 shadow-lg">
-          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-xs">
-            <h4 className="font-bold text-sm text-amber-300">
-              Đã hết hạn mức request trong ngày (Daily Quota)
-            </h4>
-            <p className="leading-relaxed text-amber-200/90">
-              {dailyQuotaBanner}
-            </p>
-            <p className="text-[11px] text-amber-300/80 pt-1">
-              *Hạn mức miễn phí của Google sẽ tự động đặt lại vào lúc 00:00 giờ Thái Bình Dương (PT). Bạn cũng có thể chuyển sang API Key có bật Billing trong phần Cấu hình Key.
+        <div className="p-3 rounded-md bg-zinc-900 border border-amber-700/40 text-amber-300 flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-0.5 text-xs">
+            <h4 className="font-semibold text-amber-200">Đã hết hạn mức request trong ngày (Daily Quota)</h4>
+            <p className="text-amber-400/80 leading-relaxed">{dailyQuotaBanner}</p>
+            <p className="text-[11px] text-amber-500/70 pt-0.5">
+              *Quota miễn phí reset lúc 00:00 PT. Hoặc chuyển sang API Key có Billing.
             </p>
           </div>
         </div>
       )}
 
-      {/* Queue Paused (RPM) Countdown Banner */}
+      {/* Rate Limit Countdown */}
       {queuePausedCountdown > 0 && !dailyQuotaBanner && (
-        <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-200 flex items-center justify-between gap-3 animate-pulse">
-          <div className="flex items-center gap-2.5 text-xs">
-            <Hourglass className="w-4 h-4 text-blue-400 animate-spin" />
+        <div className="p-2.5 rounded-md bg-zinc-900 border border-zinc-700 text-zinc-400 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs">
+            <Hourglass className="w-3.5 h-3.5 text-zinc-500 animate-spin" />
             <span>
-              <strong>Tạm dừng hàng đợi:</strong> {queuePausedReason} — Sẽ tự động tiếp tục sau{' '}
-              <strong className="font-mono text-white text-sm">{queuePausedCountdown}s</strong>
+              Tạm dừng: <span className="text-zinc-300">{queuePausedReason}</span> — tự tiếp tục sau{' '}
+              <span className="font-mono text-white">{queuePausedCountdown}s</span>
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 hidden sm:inline">
-            (Không tính vào lần thử lại của đoạn)
-          </span>
+          <span className="text-[10px] text-zinc-600 hidden sm:inline">(Không tính vào retry)</span>
         </div>
       )}
 
-      {/* Top Header & Action Buttons */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800">
         <div>
           <div className="flex items-center gap-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isProcessing ? 'bg-blue-500 animate-ping' : 'bg-slate-500'
-              }`}
-            />
-            <h3 className="font-semibold text-base text-white">
-              {isProcessing
-                ? 'Đang trích xuất dữ liệu (Rate-Limiter Active)...'
-                : pausedChunks > 0
-                ? 'Tiến trình đang tạm dừng'
-                : 'Tiến trình trích xuất tài liệu'}
+            <span className={`w-2 h-2 rounded-full ${isProcessing ? 'bg-blue-500 animate-ping' : 'bg-zinc-600'}`} />
+            <h3 className="font-medium text-sm text-zinc-100">
+              {isProcessing ? 'Đang trích xuất (Rate-Limiter Active)...'
+                : pausedChunks > 0 ? 'Tiến trình đang tạm dừng'
+                : 'Tiến trình trích xuất'}
             </h3>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Đang phân tích các trang PDF, nhận diện bảng biểu và trích xuất nguyên văn bằng {model}
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Phân tích PDF, nhận diện bảng biểu bằng <span className="font-mono text-zinc-400">{model}</span>
           </p>
         </div>
-
-        <div className="flex items-center flex-wrap gap-2.5 self-end sm:self-center">
-          {/* Resume Button when stopped with remaining chunks */}
+        <div className="flex items-center flex-wrap gap-2 self-end sm:self-center">
           {!isProcessing && hasRemainingChunks && (
-            <button
-              onClick={onResume}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/25 transition-colors"
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Tiếp tục trích xuất</span>
+            <button onClick={onResume}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+              <Play className="w-3.5 h-3.5 fill-current" /> Tiếp tục
             </button>
           )}
-
           {failedChunks > 0 && !isProcessing && (
-            <button
-              onClick={onRetryFailed}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-colors shadow-sm"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Thử lại các đoạn lỗi ({failedChunks})</span>
+            <button onClick={onRetryFailed}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 transition-colors">
+              <RefreshCw className="w-3.5 h-3.5" /> Thử lại ({failedChunks} lỗi)
             </button>
           )}
-
           {isProcessing && (
-            <button
-              onClick={onCancel}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors"
-            >
-              <XCircle className="w-3.5 h-3.5" />
-              <span>Dừng xử lý</span>
+            <button onClick={onCancel}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-red-400 border border-zinc-700 transition-colors">
+              <XCircle className="w-3.5 h-3.5" /> Dừng
             </button>
           )}
         </div>
       </div>
 
-      {/* Progress Bar & Percentage */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-300">
-          <span className="font-medium">
-            Tiến độ hoàn tất: <strong className="text-blue-400">{doneChunks}</strong> / {totalChunks} đoạn ({percentage}%)
+      {/* Progress Bar */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between text-xs text-zinc-400">
+          <span>
+            Hoàn thành: <span className="text-zinc-100 font-mono">{doneChunks}/{totalChunks}</span> đoạn ({percentage}%)
           </span>
-          <span className="text-slate-400">
+          <span className="text-zinc-600">
             {isProcessing
-              ? runningChunks > 0
-                ? `${runningChunks} đoạn đang chạy, ${waitingRateLimitChunks} đoạn chờ nhịp gọi API`
-                : 'Đang chuẩn bị...'
+              ? runningChunks > 0 ? `${runningChunks} chạy · ${waitingRateLimitChunks} chờ` : 'Chuẩn bị...'
               : 'Đã tạm dừng'}
           </span>
         </div>
-
-        <div className="w-full bg-slate-950 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-800">
+        <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 transition-all duration-300 shadow-sm"
+            className="h-full rounded-full bg-blue-500 transition-all duration-300"
             style={{ width: `${percentage}%` }}
           />
         </div>
       </div>
 
-      {/* Live Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-            <Clock className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[11px] text-slate-400">Thời gian chạy</div>
-            <div className="text-sm font-bold text-white font-mono">{formatTime(elapsedSeconds)}</div>
-          </div>
-        </div>
-
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-            <CalendarClock className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[11px] text-slate-400">Request hôm nay</div>
-            <div className="text-sm font-bold text-slate-100 font-mono">
-              {requestsUsedToday} {dailyQuotaLimit ? `/ ${dailyQuotaLimit}` : ''}
-              <span className="text-[10px] text-slate-500 ml-1 font-normal font-sans">(ước tính)</span>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {[
+          { icon: <Clock className="w-3.5 h-3.5" />, label: 'Thời gian', value: formatTime(elapsedSeconds), mono: true },
+          { icon: <CalendarClock className="w-3.5 h-3.5" />, label: 'Req hôm nay', value: `${requestsUsedToday}${dailyQuotaLimit ? `/${dailyQuotaLimit}` : ''}`, mono: true },
+          { icon: <Coins className="w-3.5 h-3.5" />, label: 'Chi phí ~', value: `$${estimatedCost.toFixed(4)}`, mono: true },
+          { icon: <Layers className="w-3.5 h-3.5" />, label: 'Trạng thái', value: `${doneChunks}✓ ${runningChunks}▶ ${failedChunks}✗`, mono: false },
+        ].map((m, i) => (
+          <div key={i} className="bg-zinc-800/60 border border-zinc-800 rounded-md p-2.5 flex items-center gap-2.5">
+            <div className="text-zinc-500 shrink-0">{m.icon}</div>
+            <div>
+              <div className="text-[10px] text-zinc-500">{m.label}</div>
+              <div className={`text-xs font-semibold text-zinc-100 ${m.mono ? 'font-mono' : ''}`}>{m.value}</div>
             </div>
           </div>
-        </div>
-
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-            <Coins className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[11px] text-slate-400">Chi phí ước tính</div>
-            <div className="text-sm font-bold text-emerald-300 font-mono">
-              ~${estimatedCost.toFixed(4)}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-            <Layers className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-[11px] text-slate-400">Trạng thái đoạn</div>
-            <div className="text-xs font-semibold text-slate-300">
-              {doneChunks} xong, {runningChunks} chạy, {failedChunks} lỗi
-              {pausedChunks > 0 && `, ${pausedChunks} tạm dừng`}
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Partial Download Toolbar (Always available when at least 1 chunk is done) */}
+      {/* Partial Download Toolbar */}
       {doneChunks > 0 && (
-        <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-300">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <span>
-              Đã trích xuất xong <strong>{doneChunks} đoạn</strong>. Bạn có thể tải ngay kết quả từng phần mà không cần đợi toàn bộ:
-            </span>
+        <div className="p-3 rounded-md bg-zinc-800/50 border border-zinc-800 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+            <span><strong className="text-zinc-200">{doneChunks} đoạn</strong> đã xong — tải ngay không cần đợi:</span>
           </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {onViewPartialReview && (
-              <button
-                type="button"
-                onClick={onViewPartialReview}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-              >
-                <Eye className="w-3.5 h-3.5 text-blue-400" />
-                <span>Xem đối chiếu ({doneChunks} đoạn)</span>
+              <button type="button" onClick={onViewPartialReview}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-zinc-900 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors">
+                <Eye className="w-3 h-3 text-zinc-500" /> Xem ({doneChunks})
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={onDownloadPartialMd}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-            >
-              <FileText className="w-3.5 h-3.5 text-slate-300" />
-              <span>Tải .md phần đã xong</span>
+            <button type="button" onClick={onDownloadPartialMd}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-zinc-900 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 transition-colors">
+              <FileText className="w-3 h-3" /> .md
             </button>
-
-            <button
-              type="button"
-              onClick={onDownloadPartialDocx}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Tải Word (.docx) phần đã xong</span>
+            <button type="button" onClick={onDownloadPartialDocx}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+              <Download className="w-3 h-3" /> .docx
             </button>
           </div>
         </div>
       )}
 
-      {/* Chunks Card Grid */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          Chi tiết từng phân đoạn PDF
-        </h4>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-72 overflow-y-auto pr-1">
+      {/* Chunk Grid */}
+      <div className="space-y-2">
+        <h4 className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Chi tiết phân đoạn</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-1">
           {chunks.map((chunk) => {
-            const isDone = chunk.status === 'done';
-            const isRunning = chunk.status === 'running';
-            const isWaitingRateLimit = chunk.status === 'waiting-for-rate-limit';
-            const isFailed = chunk.status === 'failed';
-            const isPaused = chunk.status === 'paused';
-            const isSplit = chunk.status === 'split';
-
+            const { status } = chunk;
+            const isDone = status === 'done';
+            const isRunning = status === 'running';
+            const isWRL = status === 'waiting-for-rate-limit';
+            const isFailed = status === 'failed';
+            const isPaused = status === 'paused';
+            const isSplit = status === 'split';
             return (
-              <div
-                key={chunk.id}
-                className={`p-3 rounded-xl border text-xs transition-all ${
-                  isDone
-                    ? 'bg-emerald-500/5 border-emerald-500/20 text-slate-300'
-                    : isRunning
-                    ? 'bg-blue-500/10 border-blue-500/40 text-blue-100 shadow-md ring-1 ring-blue-500/30'
-                    : isWaitingRateLimit
-                    ? 'bg-amber-500/10 border-amber-500/40 text-amber-200'
-                    : isPaused
-                    ? 'bg-purple-500/10 border-purple-500/30 text-purple-200'
-                    : isFailed
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                    : isSplit
-                    ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
-                    : 'bg-slate-950/60 border-slate-800/80 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-semibold text-slate-200">
-                    Trang {chunk.startPage}–{chunk.endPage}
-                  </span>
+              <div key={chunk.id} className={`p-2.5 rounded-md border text-xs transition-colors ${statusColor(status)}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-[11px] text-zinc-300">p.{chunk.startPage}–{chunk.endPage}</span>
                   <div>
-                    {isDone && <CheckCircle className="w-4 h-4 text-emerald-400" />}
-                    {isRunning && <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />}
-                    {isWaitingRateLimit && <Hourglass className="w-4 h-4 text-amber-400 animate-pulse" />}
-                    {isPaused && <PauseCircle className="w-4 h-4 text-purple-400" />}
-                    {isFailed && <AlertTriangle className="w-4 h-4 text-rose-400" />}
-                    {isSplit && <Sparkles className="w-4 h-4 text-indigo-400" />}
-                    {chunk.status === 'pending' && (
-                      <span className="text-[10px] text-slate-500 font-mono">Chờ</span>
-                    )}
+                    {isDone && <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />}
+                    {isRunning && <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />}
+                    {isWRL && <Hourglass className="w-3.5 h-3.5 text-amber-500" />}
+                    {isPaused && <PauseCircle className="w-3.5 h-3.5 text-zinc-500" />}
+                    {isFailed && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
+                    {isSplit && <span className="text-[9px] text-indigo-400 font-mono">split</span>}
+                    {status === 'pending' && <span className="text-[9px] text-zinc-600 font-mono">wait</span>}
                   </div>
                 </div>
-
-                <div className="text-[11px] space-y-0.5">
-                  {isDone && (
-                    <>
-                      <div className="text-emerald-400 font-medium">Hoàn thành</div>
-                      {chunk.tokens?.totalTokens && (
-                        <div className="text-slate-400 text-[10px]">
-                          {chunk.tokens.totalTokens.toLocaleString()} tokens (
-                          {((chunk.durationMs || 0) / 1000).toFixed(1)}s)
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {isRunning && (
-                    <div className="text-blue-300 font-medium animate-pulse">
-                      Đang xử lý {chunk.attempts > 1 ? `(lần ${chunk.attempts})` : ''}...
-                    </div>
-                  )}
-                  {isWaitingRateLimit && (
-                    <div className="text-amber-300 font-medium animate-pulse">
-                      Chờ lượt gọi API (còn ~{chunk.waitingSecondsRemaining || 1}s)
-                    </div>
-                  )}
-                  {isPaused && (
-                    <div className="text-purple-300 font-medium">
-                      Tạm dừng (hết quota ngày)
-                    </div>
-                  )}
-                  {isFailed && (
-                    <div className="text-rose-400 text-[10px] leading-tight line-clamp-2" title={chunk.error}>
-                      {chunk.error || 'Lỗi xử lý'} (đã thử {chunk.attempts} lần)
-                    </div>
-                  )}
-                  {isSplit && (
-                    <div className="text-indigo-300 text-[10px]">
-                      Tự động chia đôi do chạm giới hạn token
-                    </div>
-                  )}
+                <div className="text-[10px]">
+                  {isDone && <span className="text-emerald-500">Done{chunk.tokens?.totalTokens ? ` · ${(chunk.tokens.totalTokens / 1000).toFixed(1)}k tok` : ''}</span>}
+                  {isRunning && <span className="text-blue-400">Running{chunk.attempts > 1 ? ` #${chunk.attempts}` : ''}...</span>}
+                  {isWRL && <span className="text-amber-400">~{chunk.waitingSecondsRemaining || 1}s</span>}
+                  {isPaused && <span className="text-zinc-500">Paused</span>}
+                  {isFailed && <span className="text-red-400 line-clamp-1" title={chunk.error}>{chunk.error || 'Error'}</span>}
+                  {isSplit && <span className="text-indigo-400">Auto-split</span>}
                 </div>
               </div>
             );
